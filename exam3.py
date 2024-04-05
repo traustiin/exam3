@@ -33,9 +33,15 @@ class QuizApp:
         conn = sqlite3.connect('quiz_bowl.db')
         c = conn.cursor()
 
-        # Fetch a question from the selected category
-        c.execute('''SELECT question FROM quiz WHERE category = ?''', (category,))
-        question = c.fetchone()[0]
+        # Fetch question and answers from the selected category
+        c.execute('''SELECT question, answer1, answer2, answer3, answer4 FROM quiz WHERE category = ?''', (category,))
+        result = c.fetchone()
+        if not result:
+            messagebox.showerror("Error", "No question found for the selected category")
+            conn.close()
+            return
+
+        question, *answers = result
 
         # Close connection
         conn.close()
@@ -47,7 +53,7 @@ class QuizApp:
         self.answer_var = tk.StringVar(self.quiz_window)
         self.answer_var.set("")  # Set default value
 
-        self.answer_menu = tk.OptionMenu(self.quiz_window, self.answer_var, "A", "B", "C", "D")
+        self.answer_menu = tk.OptionMenu(self.quiz_window, self.answer_var, *answers)
         self.answer_menu.pack()
 
         self.submit_button = tk.Button(self.quiz_window, text="Submit Answer", command=self.check_answer)
@@ -86,6 +92,7 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = QuizApp(root)
     root.mainloop()
+
 
 
 
