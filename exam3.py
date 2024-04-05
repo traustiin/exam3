@@ -1,97 +1,91 @@
 import tkinter as tk
+import sqlite3
 from tkinter import messagebox
 
 class QuizApp:
-    def __init__(self, master):
-        self.master = master
-        self.master.title("Quiz Bowl Project")
-        
-        # Create a label for category selection
-        self.label = tk.Label(master, text="Select a category:")
-        self.label.pack()
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Quiz Bowl")
+        self.root.geometry("400x300")
 
-        # Create a combobox for category selection
-        self.category_var = tk.StringVar()
-        self.category_var.set("Select Category")
-        self.category_dropdown = tk.OptionMenu(master, self.category_var, "Business Ethics", "Business Database Mgmt", "Business Communications", "Principles of Macroeconomics", "Business Applications")
-        self.category_dropdown.pack()
+        self.category_label = tk.Label(root, text="Select Category:")
+        self.category_label.pack()
 
-        # Create a button to start the quiz
-        self.start_button = tk.Button(master, text="Start Quiz Now", command=self.start_quiz)
+        self.category_var = tk.StringVar(root)
+        self.category_var.set("")  # Set default value
+
+        self.category_menu = tk.OptionMenu(root, self.category_var, "Business Ethics", "Business Database Mgmt", "Business Communications", "Principles of Macroeconomics", "Business Applications")
+        self.category_menu.pack()
+
+        self.start_button = tk.Button(root, text="Start Quiz Now", command=self.open_quiz_window)
         self.start_button.pack()
 
-    def start_quiz(self):
-        # Get the selected category
-        selected_category = self.category_var.get()
-        if selected_category == "Select Category":
-            messagebox.showwarning("Warning", "Please select a category!")
+    def open_quiz_window(self):
+        category = self.category_var.get()
+        if not category:
+            messagebox.showwarning("Warning", "Please select a category")
+            return
+
+        self.quiz_window = tk.Toplevel(self.root)
+        self.quiz_window.title("Quiz")
+        
+        # Connect to the database
+        conn = sqlite3.connect('quiz_bowl.db')
+        c = conn.cursor()
+
+        # Fetch a question from the selected category
+        c.execute('''SELECT question FROM quiz WHERE category = ?''', (category,))
+        question = c.fetchone()[0]
+
+        # Close connection
+        conn.close()
+
+        self.question_label = tk.Label(self.quiz_window, text=f"Category: {category}\nQuestion: {question}")
+        self.question_label.pack()
+
+        # Add drop-down menu for answers
+        self.answer_var = tk.StringVar(self.quiz_window)
+        self.answer_var.set("")  # Set default value
+
+        self.answer_menu = tk.OptionMenu(self.quiz_window, self.answer_var, "A", "B", "C", "D")
+        self.answer_menu.pack()
+
+        self.submit_button = tk.Button(self.quiz_window, text="Submit Answer", command=self.check_answer)
+        self.submit_button.pack()
+
+    def check_answer(self):
+        answer = self.answer_var.get()
+        if not answer:
+            messagebox.showwarning("Warning", "Please select an answer")
+            return
+
+        # Fetch the correct answer from the database based on the selected category
+        category = self.category_var.get()
+        if not category:
+            messagebox.showwarning("Warning", "Please select a category")
+            return
+
+        # Connect to the database
+        conn = sqlite3.connect('quiz_bowl.db')
+        c = conn.cursor()
+
+        # Fetch the correct answer for the selected category
+        c.execute('''SELECT correct_answer FROM quiz WHERE category = ?''', (category,))
+        correct_answer = c.fetchone()[0]
+
+        # Close connection
+        conn.close()
+
+        # Check if the selected answer matches the correct answer
+        if answer == correct_answer:
+            messagebox.showinfo("Answer", "Correct")
         else:
-            # Open the second window for the quiz
-            self.open_quiz_window(selected_category)
+            messagebox.showinfo("Answer", "Incorrect")
 
-    def open_quiz_window(self, category):
-        # Create the second window for the quiz
-        self.quiz_window = tk.Toplevel(self.master)
-        self.quiz_window.title("Quiz - " + category)
-
-        # Display sample quiz questions and answers for "Business Ethics" category
-        if category == "Business Ethics":
-            self.questions = [
-                "1. What is the definition of business ethics?",
-                "2. What are the key principles of ethical decision making in business?"
-            ]
-            self.correct_answers = [
-                "The application of ethical values to business activities",
-                "Honesty, fairness, integrity"
-            ]
-            self.answers = [
-                ["The study of how to maximize profits", "The application of ethical values to business activities", "The process of marketing products", "The study of corporate law"],
-                ["Honesty, fairness, integrity", "Profit maximization at all costs", "Taking advantage of competitors", "Exploiting workers"]
-            ]
-            
-            self.current_question_index = 0
-            self.display_question()
-
-    def display_question(self):
-        # Display the current question
-        question_label = tk.Label(self.quiz_window, text=self.questions[self.current_question_index])
-        question_label.pack()
-
-        # Display answer choices as dropdown menus
-        answer_var = tk.StringVar()
-        answer_var.set("Select Answer")
-        answer_dropdown = tk.OptionMenu(self.quiz_window, answer_var, *self.answers[self.current_question_index])
-        answer_dropdown.pack()
-
-        # Add a button to submit the answer
-        submit_button = tk.Button(self.quiz_window, text="Submit Answer", command=lambda: self.submit_answer(answer_var.get()))
-        submit_button.pack()
-
-    def submit_answer(self, selected_answer):
-        # Compare selected answer with correct answer
-        if selected_answer == self.correct_answers[self.current_question_index]:
-            print(f"Question {self.current_question_index + 1}: Correct")
-        else:
-            print(f"Question {self.current_question_index + 1}: Incorrect")
-
-        # Move to the next question or finish the quiz
-        self.current_question_index += 1
-        if self.current_question_index < len(self.questions):
-            # Clear current question and display the next question
-            for widget in self.quiz_window.winfo_children():
-                widget.destroy()
-            self.display_question()
-        else:
-            # End of quiz
-            messagebox.showinfo("Quiz Finished", "Quiz Finished! Thank you for participating.")
-            self.quiz_window.destroy()
-
-def main():
+if __name__ == "__main__":
     root = tk.Tk()
     app = QuizApp(root)
     root.mainloop()
 
-if __name__ == "__main__":
-    main()
 
 
