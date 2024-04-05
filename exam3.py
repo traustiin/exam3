@@ -63,12 +63,12 @@ class QuizApp:
         self.submit_button.pack()
 
     def check_answer(self):
-        answer = self.answer_var.get()
-        if not answer:
+        selected_answer = self.answer_var.get()
+        if not selected_answer:
             messagebox.showwarning("Warning", "Please select an answer")
             return
 
-        # Fetch the correct answer from the database based on the selected category
+        # Fetch the correct answer index from the database based on the selected category
         category = self.category_var.get()
         if not category:
             messagebox.showwarning("Warning", "Please select a category")
@@ -78,15 +78,21 @@ class QuizApp:
         conn = sqlite3.connect('quiz_bowl.db')
         c = conn.cursor()
 
-        # Fetch the correct answer for the selected category
-        c.execute('''SELECT correct_answer FROM quiz WHERE category = ?''', (category,))
-        correct_answer = c.fetchone()[0]
+        # Fetch all answers for the selected category
+        c.execute('''SELECT correct_answer, answer1, answer2, answer3, answer4 FROM quiz WHERE category = ?''', (category,))
+        answers = c.fetchone()
 
         # Close connection
         conn.close()
 
-        # Check if the selected answer matches the correct answer
-        if answer == correct_answer:
+        # Get the index of the correct answer
+        correct_index = answers.index(answers[0])
+
+        # Get the index of the selected answer
+        selected_index = ord(selected_answer[0]) - ord('A')
+
+        # Check if the selected answer index matches the correct answer index
+        if selected_index == correct_index:
             messagebox.showinfo("Answer", "Correct")
         else:
             messagebox.showinfo("Answer", "Incorrect")
@@ -95,6 +101,8 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = QuizApp(root)
     root.mainloop()
+
+
 
 
 
