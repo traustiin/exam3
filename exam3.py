@@ -46,6 +46,9 @@ class QuizApp:
         # Close connection
         conn.close()
 
+        # Format answers with letters (A, B, C, D)
+        formatted_answers = [f"{chr(65 + i)}. {answer}" for i, answer in enumerate(answers)]
+
         self.question_label = tk.Label(self.quiz_window, text=f"Category: {category}\nQuestion: {question}")
         self.question_label.pack()
 
@@ -53,7 +56,7 @@ class QuizApp:
         self.answer_var = tk.StringVar(self.quiz_window)
         self.answer_var.set("")  # Set default value
 
-        self.answer_menu = tk.OptionMenu(self.quiz_window, self.answer_var, *answers)
+        self.answer_menu = tk.OptionMenu(self.quiz_window, self.answer_var, *formatted_answers)
         self.answer_menu.pack()
 
         self.submit_button = tk.Button(self.quiz_window, text="Submit Answer", command=self.check_answer)
@@ -92,6 +95,7 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = QuizApp(root)
     root.mainloop()
+
 
 
 
