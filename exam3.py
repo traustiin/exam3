@@ -63,7 +63,7 @@ class QuizApp:
 
         # Display question number
         question_number = self.current_question_index + 1
-        self.question_label = tk.Label(self.quiz_window, text=f"Question {question_number}: {question}")
+        self.question_label = tk.Label(self.quiz_window, text=f"Question {question_number}: {question}", font=("Helvetica", 12, "bold"))
         self.question_label.pack()
 
         # Add drop-down menu for answers
@@ -71,9 +71,10 @@ class QuizApp:
         self.answer_var.set("")  # Set default value
 
         self.answer_menu = tk.OptionMenu(self.quiz_window, self.answer_var, *formatted_answers)
+        self.answer_menu.config(font=("Helvetica", 10))
         self.answer_menu.pack()
 
-        self.submit_button = tk.Button(self.quiz_window, text="Submit Answer", command=self.check_answer)
+        self.submit_button = tk.Button(self.quiz_window, text="Submit Answer", command=self.check_answer, font=("Helvetica", 10, "bold"), bg="blue", fg="white")
         self.submit_button.pack()
 
     def check_answer(self):
@@ -111,3 +112,4 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = QuizApp(root)
     root.mainloop()
+
