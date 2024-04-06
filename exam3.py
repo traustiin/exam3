@@ -26,30 +26,39 @@ class QuizApp:
             messagebox.showwarning("Warning", "Please select a category")
             return
 
-        self.quiz_window = tk.Toplevel(self.root)
-        self.quiz_window.title("Quiz")
-        
         # Connect to the database
         conn = sqlite3.connect('quiz_bowl.db')
         c = conn.cursor()
 
-        # Fetch question and answers from the selected category
+        # Fetch all questions and answers from the selected category
         c.execute('''SELECT question, answer1, answer2, answer3, answer4 FROM quiz WHERE category = ?''', (category,))
-        result = c.fetchone()
-        if not result:
-            messagebox.showerror("Error", "No question found for the selected category")
+        questions = c.fetchall()
+        if not questions:
+            messagebox.showerror("Error", "No questions found for the selected category")
             conn.close()
             return
-
-        question, *answers = result
 
         # Close connection
         conn.close()
 
+        # Initialize quiz window
+        self.quiz_window = tk.Toplevel(self.root)
+        self.quiz_window.title("Quiz")
+
+        # Store questions and answers
+        self.questions = questions
+        self.current_question_index = 0
+
+        # Display first question
+        self.display_question()
+
+    def display_question(self):
+        question, *answers = self.questions[self.current_question_index]
+
         # Format answers with letters (A, B, C, D)
         formatted_answers = [f"{chr(65 + i)}. {answer}" for i, answer in enumerate(answers)]
 
-        self.question_label = tk.Label(self.quiz_window, text=f"Category: {category}\nQuestion: {question}")
+        self.question_label = tk.Label(self.quiz_window, text=f"Question: {question}")
         self.question_label.pack()
 
         # Add drop-down menu for answers
@@ -68,39 +77,34 @@ class QuizApp:
             messagebox.showwarning("Warning", "Please select an answer")
             return
 
-        # Fetch the correct answer index from the database based on the selected category
-        category = self.category_var.get()
-        if not category:
-            messagebox.showwarning("Warning", "Please select a category")
-            return
-
-        # Connect to the database
-        conn = sqlite3.connect('quiz_bowl.db')
-        c = conn.cursor()
-
-        # Fetch all answers for the selected category
-        c.execute('''SELECT correct_answer, answer1, answer2, answer3, answer4 FROM quiz WHERE category = ?''', (category,))
-        answers = c.fetchone()
-
-        # Close connection
-        conn.close()
-
-        # Get the index of the correct answer
-        correct_index = answers.index(answers[0])
-
         # Get the index of the selected answer
         selected_index = ord(selected_answer[0]) - ord('A')
 
-        # Check if the selected answer index matches the correct answer index
+        correct_index = 0  # Assuming the first answer is always correct
         if selected_index == correct_index:
             messagebox.showinfo("Answer", "Correct")
         else:
             messagebox.showinfo("Answer", "Incorrect")
 
+        # Move to the next question
+        self.current_question_index += 1
+
+        # Check if there are more questions
+        if self.current_question_index < len(self.questions):
+            # Remove the current question widgets
+            self.question_label.pack_forget()
+            self.answer_menu.pack_forget()
+            self.submit_button.pack_forget()
+            # Display the next question
+            self.display_question()
+        else:
+            messagebox.showinfo("End of Quiz", "You have completed all questions")
+
 if __name__ == "__main__":
     root = tk.Tk()
     app = QuizApp(root)
     root.mainloop()
+
 
 
 
