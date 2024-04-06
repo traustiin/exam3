@@ -26,6 +26,9 @@ class QuizApp:
             messagebox.showwarning("Warning", "Please select a category")
             return
 
+        # Close the root window
+        self.root.destroy()
+
         # Connect to the database
         conn = sqlite3.connect('quiz_bowl.db')
         c = conn.cursor()
@@ -42,7 +45,7 @@ class QuizApp:
         conn.close()
 
         # Initialize quiz window
-        self.quiz_window = tk.Toplevel(self.root)
+        self.quiz_window = tk.Tk()
         self.quiz_window.title("Quiz")
 
         # Store questions and answers
@@ -99,11 +102,14 @@ class QuizApp:
             self.display_question()
         else:
             messagebox.showinfo("End of Quiz", "You have completed all questions")
+            # Close the quiz window
+            self.quiz_window.destroy()
 
 if __name__ == "__main__":
     root = tk.Tk()
     app = QuizApp(root)
     root.mainloop()
+
 
 
 
