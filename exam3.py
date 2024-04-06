@@ -61,7 +61,9 @@ class QuizApp:
         # Format answers with letters (A, B, C, D)
         formatted_answers = [f"{chr(65 + i)}. {answer}" for i, answer in enumerate(answers)]
 
-        self.question_label = tk.Label(self.quiz_window, text=f"Question: {question}")
+        # Display question number
+        question_number = self.current_question_index + 1
+        self.question_label = tk.Label(self.quiz_window, text=f"Question {question_number}: {question}")
         self.question_label.pack()
 
         # Add drop-down menu for answers
