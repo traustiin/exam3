@@ -95,21 +95,22 @@ class QuizApp:
         # Move to the next question
         self.current_question_index += 1
 
-        # Check if there are more questions
-        if self.current_question_index < len(self.questions):
+        # Check if the current question index is equal to 10
+        if self.current_question_index == 10:
+            messagebox.showinfo("End of Quiz", "You have completed all questions")
+            # Close the quiz window
+            self.quiz_window.destroy()
+        elif self.current_question_index < len(self.questions):
             # Remove the current question widgets
             self.question_label.pack_forget()
             self.answer_menu.pack_forget()
             self.submit_button.pack_forget()
             # Display the next question
             self.display_question()
-        else:
-            messagebox.showinfo("End of Quiz", "You have completed all questions")
-            # Close the quiz window
-            self.quiz_window.destroy()
 
 if __name__ == "__main__":
     root = tk.Tk()
     app = QuizApp(root)
     root.mainloop()
+
 
